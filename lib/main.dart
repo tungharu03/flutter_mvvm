@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
-import 'sample_item_view_model.dart';
 import 'sample_item_list_view.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final SampleItemViewModel _viewModel = SampleItemViewModel();
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Quản lí thư mục',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SampleItemListView(viewModel: _viewModel),
+    return const MaterialApp(
+      home: SampleItemListView(),
     );
   }
 }
-
