@@ -1,40 +1,91 @@
 import 'package:flutter/material.dart';
 import 'sample_item.dart';
 import 'sample_item_view_model.dart';
+import 'sample_item_update.dart';
 
-class SampleItemDetailsView extends StatelessWidget {
+class SampleItemDetailsView extends StatefulWidget {
   final SampleItem item;
+  final SampleItemViewModel viewModel;
 
-  const SampleItemDetailsView({Key? key, required this.item}) : super(key: key);
+  const SampleItemDetailsView({
+    Key? key,
+    required this.item,
+    required this.viewModel,
+  }) : super(key: key);
+
+  @override
+  State<SampleItemDetailsView> createState() => _SampleItemDetailsViewState();
+}
+
+class _SampleItemDetailsViewState extends State<SampleItemDetailsView> {
+  late TextEditingController _textEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textEditingController = TextEditingController(text: widget.item.name.value);
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _controller = TextEditingController(text: item.name);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chi tiết mục'),
+        title: const Text('Item Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              showModalBottomSheet<String>(
+                context: context,
+                builder: (context) =>
+                    SampleItemUpdate(initialName: widget.item.name.value),
+              ).then((value) {
+                if (value != null) {
+                  widget.viewModel.updateItem(widget.item.id, value);
+                }
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Xác nhận xóa"),
+                    content: const Text("Bạn có chắc muốn xóa mục này?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("Bỏ qua"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          widget.viewModel.removeItem(widget.item.id);
+                          Navigator.of(context).pop(true);
+                        },
+                        child: const Text("Xóa"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ID: ${item.id}', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 20),
-            TextField(
-              controller: _controller,
-              decoration: InputDecoration(labelText: 'Tên mục'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                SampleItemViewModel().updateItem(item.id, _controller.text);
-                Navigator.pop(context);
-              },
-              child: Text('Cập nhật'),
-            ),
-          ],
-        ),
+      body: ValueListenableBuilder<String>(
+        valueListenable: widget.item.name,
+        builder: (_, name, __) {
+          return Center(child: Text(name));
+        },
       ),
     );
   }
